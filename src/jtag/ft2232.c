@@ -1364,15 +1364,15 @@ static int ft2232_init_ftd2xx(u16 vid, u16 pid, int more, int *try_more)
 	char *openex_string = NULL;
 	u8 latency_timer;
 
-	LOG_DEBUG("'ft2232' interface using FTD2XX with '%s' layout (%4.4x:%4.4x)",
-	    ft2232_layout, vid, pid);
+	LOG_DEBUG("'ft2232' interface using FTD2XX with '%s' layout",
+	    ft2232_layout);
 
 #if IS_WIN32 == 0
 	/* Add non-standard Vid/Pid to the linux driver */
-	if ((status = FT_SetVIDPID(vid, pid)) != FT_OK)
+	if ((status = FT_SetVIDPID(ft2232_vid[0], ft2232_pid[0])) != FT_OK)
 	{
 		LOG_WARNING("couldn't add %4.4x:%4.4x",
-		    vid, pid);
+		    ft2232_vid[0], ft2232_pid[0]);
 	}
 #endif
 
@@ -1491,18 +1491,18 @@ static int ft2232_init_libftdi(u16 vid, u16 pid, int more, int *try_more)
 {
 	u8 latency_timer;
 
-	LOG_DEBUG("'ft2232' interface using libftdi with '%s' layout (%4.4x:%4.4x)",
-		ft2232_layout, vid, pid);
+	LOG_DEBUG("'ft2232' interface using libftdi with '%s' layout",
+	    ft2232_layout);
 
 	if (ftdi_init(&ftdic) < 0)
 		return ERROR_JTAG_INIT_FAILED;
 
 	/* context, vendor id, product id */
 	if (ftdi_usb_open_desc(&ftdic, vid, pid, ft2232_device_desc,
-		ft2232_serial) < 0) {
+                ft2232_serial) < 0) {
 		if (more)
 			LOG_WARNING("unable to open ftdi device (trying more): %s",
-				ftdic.error_str);
+			        ftdic.error_str);
 		else
 			LOG_ERROR("unable to open ftdi device: %s", ftdic.error_str);
 		*try_more = 1;
@@ -1599,10 +1599,10 @@ int ft2232_init(void)
 
 #if BUILD_FT2232_FTD2XX == 1
 		retval = ft2232_init_ftd2xx(ft2232_vid[i], ft2232_pid[i],
-			more, &try_more);
+		    more, &try_more);
 #elif BUILD_FT2232_LIBFTDI == 1
 		retval = ft2232_init_libftdi(ft2232_vid[i], ft2232_pid[i],
-			more, &try_more);
+		    more, &try_more);
 #endif	
 		if (retval >= 0)
 			break;
@@ -2132,7 +2132,7 @@ int ft2232_handle_vid_pid_command(struct command_context_s *cmd_ctx, char *cmd, 
 
 	if (argc > MAX_USB_IDS*2) {
 		LOG_WARNING("ignoring extra IDs in ft2232_vid_pid "
-			"(maximum is %d pairs)", MAX_USB_IDS);
+		    "(maximum is %d pairs)", MAX_USB_IDS);
 		argc = MAX_USB_IDS*2;
 	}
 	if (argc < 2 || (argc & 1))
@@ -2160,11 +2160,12 @@ int ft2232_handle_latency_command(struct command_context_s *cmd_ctx, char *cmd, 
 	if (argc == 1)
 	{
 		ft2232_latency = atoi(args[0]);
-	}
-	else
-	{
-		LOG_ERROR("expected exactly one argument to ft2232_latency <ms>");
-	}
-	
+        }
+        else
+        {
+                LOG_ERROR("expected exactly one argument to ft2232_latency <ms>");
+        }
+       
+
 	return ERROR_OK;
 }
